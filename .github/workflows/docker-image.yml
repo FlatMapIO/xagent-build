@@ -23,9 +23,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build images
         run: |
-          docker build -t XAgent/dockerfiles/ToolServerManager/Dockerfile huodon/xagent-ToolServerManager:latest XAgent
-          docker build -t XAgent/dockerfiles/ToolServerNode/Dockerfile huodon/xagent-ToolServerNode:latest XAgent
-          docker build -f XAgent/dockerfiles/ToolServerMonitor/Dockerfile -t huodon/xagent-ToolServerMonitor:latest XAgent
+          for i in ToolServerManager ToolServerNode ToolServerMonitor; do
+            docker build -f XAgent/dockerfiles/$i/Dockerfile -t huodon/xagent-$i:latest ./XAgent
+          done
       - name: Push images
         run: |
           docker push huodon/{ToolServerManager,ToolServerNode,ToolServerMonitor}:latest
