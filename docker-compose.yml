@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  ToolServerManager:
+    image: huodon/xagent-toolservermanager
+    ports:
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+     DB_HOST: db
+     DB_PORT: 27017
+     DB_USERNAME: ${DB_USERNAME}
+     DB_PASSWORD: ${DB_PASSWORD}
+     DB_COLLECTION: ${DB_COLLECTION}
+    depends_on:
+      - db
+    command: ["--workers","4","-t","600"]
+
+  # This will create a test node that will never be used by XAgent
+  ToolServerNode:
+    image: huodon/xagent-toolservernode
+    entrypoint: /bin/sh -c 'echo "Build complete. Exiting..." && exit 0'
+    command: echo "Build complete. Exiting..."
+  ToolServerMonitor:
+    image: xagent-toolservermonitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+     DB_HOST: db
+     DB_PORT: 27017
+     DB_USERNAME: ${DB_USERNAME}
+     DB_PASSWORD: ${DB_PASSWORD}
+     DB_COLLECTION: ${DB_COLLECTION}
+    depends_on:
+      - db
+
+  db:
+    image: mongo
+    restart: always
+    volumes:
+      - xagentmongodb:/data/db
+    environment:
+     MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+     MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    logging:
+      driver: "none"
+
+  XAgentServer:
+    image: huodon/xagent-xagentserver
+    container_name: XAgent-Server
+    env_file:
+      - .env
+    environment:
+      - TOOLSERVER_URL=http://ToolServerManager:8080
+    volumes:
+      - ./assets:/app/assets:ro
+    ports:
+      - "5173:5173"
+      - "8090:8090"
+
+volumes:
+  xagentmongodb:
+
+networks:
+  default:
+    name: tool-server-network
+    driver: bridge

@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push images
         run: |
-          for i in ToolServerManager ToolServerNode ToolServerMonitor; do
+          for i in ToolServerManager ToolServerNode ToolServerMonitor XAgentServer; do
             name=$(echo $i | tr '[:upper:]' '[:lower:]')
             docker build -f XAgent/dockerfiles/$i/Dockerfile -t huodon/xagent-$name:latest ./XAgent
             docker push huodon/xagent-$name:latest
